@@ -31,4 +31,8 @@ public enum ArtifactoryRepositoryType {
   public String getArtifactExtension() {
     return artifactExtension;
   }
+
+  public String getRepoTypeString() {
+    return repoTypeString.toLowerCase();
+  }
 }

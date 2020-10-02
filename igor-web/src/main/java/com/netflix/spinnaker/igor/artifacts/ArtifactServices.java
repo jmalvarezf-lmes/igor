@@ -22,10 +22,12 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
+import org.springframework.beans.factory.annotation.Autowired;
 
 public class ArtifactServices {
   private final Map<String, ArtifactService> artifactServices = new HashMap<>();
 
+  @Autowired
   public void addServices(Map<String, ? extends ArtifactService> services) {
     artifactServices.putAll(services);
   }

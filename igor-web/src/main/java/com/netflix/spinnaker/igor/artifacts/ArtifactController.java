@@ -19,7 +19,11 @@ package com.netflix.spinnaker.igor.artifacts;
 
 import com.netflix.spinnaker.kork.artifacts.model.Artifact;
 import com.netflix.spinnaker.kork.web.exceptions.NotFoundException;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
+import java.util.stream.Collectors;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -33,6 +37,7 @@ import org.springframework.web.bind.annotation.RestController;
  */
 @RestController
 @RequestMapping("/artifacts")
+@Slf4j
 public class ArtifactController {
 
   private final ArtifactServices artifactServices;
@@ -48,8 +53,27 @@ public class ArtifactController {
       @PathVariable("name") String name,
       @RequestParam(value = "releaseStatus", required = false) List<String> releaseStatuses,
       @RequestParam(value = "type", required = false, defaultValue = "deb") String type) {
+    log.info(
+        "Calling getVersions with arguments: {}, {}, {}, {}",
+        provider,
+        name,
+        releaseStatuses,
+        type);
     ArtifactService artifactService = getService(provider);
     return artifactService.getArtifactVersions(type, name, releaseStatuses);
+  }
+
+  @GetMapping("/{name}")
+  public List<String> getAllVersions(
+      @PathVariable("name") String name,
+      @RequestParam(value = "releaseStatus", required = false) List<String> releaseStatuses,
+      @RequestParam(value = "type", required = false, defaultValue = "deb") String type) {
+    log.info("Calling getVersions with arguments: {}, {}, {}, {}", name, releaseStatuses, type);
+    List<ArtifactService> artifactServices = getAllServices();
+    return artifactServices.stream()
+        .map(artifactService -> artifactService.getArtifactVersions(type, name, releaseStatuses))
+        .filter(Objects::nonNull)
+        .collect(ArrayList::new, List::addAll, List::addAll);
   }
 
   @GetMapping("/{provider}/{name}/{version:.+}")
@@ -58,9 +82,19 @@ public class ArtifactController {
       @PathVariable("name") String name,
       @PathVariable("version") String version,
       @RequestParam(value = "type", required = false, defaultValue = "deb") String type) {
+    log.info("Calling getVersions with arguments: {}, {}, {}, {}", provider, name, version, type);
     ArtifactService artifactService = getService(provider);
     return artifactService.getArtifact(type, name, version);
   }
+
+  //  @GetMapping("/{name}/{version:.+}")
+  //  public Artifact getAllArtifacts(@PathVariable("name") String name,
+  //    @PathVariable("version") String version,
+  //    @RequestParam(value = "type", required = false, defaultValue = "deb") String type) {
+  //    List<ArtifactService> artifactServices = getAllServices();
+  //    return artifactServices.stream().map(artifactService -> artifactService.getArtifact(type,
+  // name, version)).filter(Objects::nonNull).collect(Collectors.toList()).get(0);
+  //  }
 
   private ArtifactService getService(String serviceName) {
     ArtifactService artifactService = artifactServices.getService(serviceName);
@@ -68,5 +102,11 @@ public class ArtifactController {
       throw new NotFoundException("Provider " + serviceName + " not found");
     }
     return artifactService;
+  }
+
+  private List<ArtifactService> getAllServices() {
+    return artifactServices.getServiceNames().stream()
+        .map(name -> artifactServices.getService(name))
+        .collect(Collectors.toList());
   }
 }

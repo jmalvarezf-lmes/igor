@@ -84,6 +84,8 @@ dependencies {
     implementation "com.google.guava:guava"
     implementation "javax.inject:javax.inject:1"
 
+  implementation "org.jfrog.artifactory.client:artifactory-java-client-services:2.8.1"
+
     runtimeOnly "com.netflix.spinnaker.kork:kork-runtime"
 
     testImplementation "com.squareup.okhttp:mockwebserver"

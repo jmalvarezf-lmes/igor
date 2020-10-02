@@ -197,6 +197,7 @@ public class ArtifactoryBuildMonitor
         for (ArtifactoryItem artifact : artifactDelta.getArtifacts()) {
           Artifact matchableArtifact =
               artifact.toMatchableArtifact(artifactDelta.getType(), delta.getBaseUrl());
+          cache.setArtifactKey(matchableArtifact, artifactDelta.getType());
           postEvent(matchableArtifact, delta.getName());
           log.debug("{} event posted", artifact);
         }
